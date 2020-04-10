@@ -16,6 +16,14 @@ class Blockchain(object):
         # Create the genesis block
         self.new_block(previous_hash=1, proof=100)
 
+    # * New transactions - for Wallet
+    def new_transaction(self, sender, recipient, amount):
+        self.current_transactions.append(
+            {"sender": sender, "recipient": recipient, "amount": amount}
+        )
+
+        return self.last_block["index"] + 1
+
     def new_block(self, proof, previous_hash=None):
         """
         Create a new Block in the Blockchain
@@ -163,6 +171,28 @@ def full_chain():
 def get_last_block():
     response = {"last_block": blockchain.last_block}
     return jsonify(response), 200
+
+
+# TODO for Wallet
+# * request.get_json gets data out of POST
+# * check if all values are present (sender, recipient, and amount)
+# * if error, return 400 with jsonify(res)
+# * if success, return index of the block with the transaction
+
+
+@app.route("/transactions/new", methods=["POST"])
+def get_transaction():
+    req = request.get_json()
+    validate = ["sender", "recipient", "amount"]
+
+    if not all(k in req for k in validate):
+        res = {"message": "Something is missing..."}
+        return jsonify(res), 400
+
+    index = blockchain.new_transaction(req["sender"], req["recipient"], req["amount"])
+    res = {"message": f"Transaction added to block {index}"}
+
+    return jsonify(res), 201
 
 
 # Run the program on port 5000
